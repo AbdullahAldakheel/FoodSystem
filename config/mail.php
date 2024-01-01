@@ -14,6 +14,7 @@ return [
     */
 
     'default' => env('MAIL_MAILER', 'smtp'),
+    'admin_email' => env('ADMIN_MAIL', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -39,7 +40,7 @@ return [
             'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
             'port' => env('MAIL_PORT', 587),
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
+            'username' => env('MAIL_USERNAME', env('MAIL_FROM_ADDRESS')),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
@@ -93,7 +94,7 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'FoodSystem')),
     ],
 
     /*

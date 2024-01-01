@@ -14,3 +14,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get('/health', [\App\Http\Controllers\GeneralController::class, 'health']);
+
+
+// Order Resources
+Route::post('/orders', [\App\Http\Controllers\v1\OrderController::class, 'create']);
+
+// Stock Resources
+Route::get('/stock', [\App\Http\Controllers\GeneralController::class, 'stock']);
