@@ -22,24 +22,24 @@ class OrderController extends Controller
     public function create(CreateOrderRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $data_to_insert = [];
-        $timestamp = date('Y-m-d H:i:s');
+        $timestamp = now();
 
-        // Loop through the products and add them to the data to insert
-        foreach ($data['products'] as $product) {
-            $quantity = $product['quantity'];
-            $record = [
-                'product_id' => $product['product_id'],
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ];
-            $flatten_product = array_fill(0, $quantity, $record);
-            $data_to_insert = array_merge($data_to_insert, $flatten_product);
-        }
+        // Use array_map to efficiently generate records for each product
+        $dataToInsert = Arr::map($data['products'], fn($product) => array_fill(0, $product['quantity'], [
+            'product_id' => $product['product_id'],
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]));
 
-        Order::query()->insert($data_to_insert);
-        // Trigger the event
+        // Flatten the array of arrays into a single array
+        $dataToInsert = array_merge(...$dataToInsert);
+
+        // Insert the prepared data into the 'orders' table
+        Order::query()->insert($dataToInsert);
+
+        // Trigger the OrderPlacedEvent to handle additional actions
         event(new OrderPlacedEvent());
+
         return Response::json([
             'status' => 'ok',
             'message' => 'Order placed successfully'
