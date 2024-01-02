@@ -1,0 +1,104 @@
+version: '3.4'
+
+
+services:
+    setup:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        command: [ "php", "/var/www/html/artisan", "food:setup" ]
+        depends_on:
+            - db
+            - redis
+        networks:
+            - food-system
+
+    worker:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        entrypoint: [ "php", "/var/www/html/artisan", "queue:work" ]
+        restart: unless-stopped
+        depends_on:
+            - db
+            - redis
+            - api
+        networks:
+            - food-system
+
+    webserver:
+        image: nginx:alpine
+        container_name: webserver
+        restart: unless-stopped
+        tty: true
+        volumes:
+            - ./:/var/www/html
+            - ./deployment/nginx/default.conf:/etc/nginx/conf.d/default.conf
+        ports:
+            - "8081:80"
+            - "443:443"
+        depends_on:
+            -  api
+            -  setup
+        networks:
+            - food-system
+
+    api:
+        container_name: api
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        tty: true
+        environment:
+            SERVICE_NAME: app
+            SERVICE_TAGS: dev
+        command: ["php-fpm"]
+        expose:
+            -   "9000"
+        depends_on:
+            - db
+            - redis
+            - setup
+        networks:
+            - food-system
+
+    #MySQL Service
+    db:
+        image: 'mysql/mysql-server:8.0'
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ROOT_HOST: "%"
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+        volumes:
+            - ./deployment/lib/:/var/lib/mysql/
+        healthcheck:
+            test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}" ]
+            interval: 30s
+            retries: 3
+            timeout: 5s
+        networks:
+            - food-system
+
+    redis:
+        image: redis:6.2-alpine
+        restart: always
+        ports:
+            - '6379:6379'
+        command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+        volumes:
+            - ./deployment/redis/:/data
+        networks:
+            - food-system
+
+#Docker Networks
+networks:
+    food-system:
+        driver: bridge

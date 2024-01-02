@@ -39,7 +39,7 @@ class OrderController extends Controller
 
         Order::query()->insert($data_to_insert);
         // Trigger the event
-        // TODO: Trigger the event in the background
+        event(new OrderPlacedEvent());
         return Response::json([
             'status' => 'ok',
             'message' => 'Order placed successfully'
