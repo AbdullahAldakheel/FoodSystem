@@ -16,7 +16,8 @@ class GeneralController extends Controller
      */
     public function stock(): JsonResponse
     {
-        $ingredients = collect(DB::select(DB::raw("select id, item,weight_in_grams, sum(cc) as ordered_weight_sum   from (
+        // Retrieve ingredients data with the ordered weight sum
+        $ingredientsData = collect(DB::select(DB::raw("select id, item,weight_in_grams, sum(cc) as ordered_weight_sum   from (
                                                             SELECT i.id, i.item, i.weight_in_grams AS weight_in_grams, pi.weight_in_grams * count(o.id) AS cc
                                                                 FROM ingredients i JOIN product_ingredients pi ON i.id = pi.ingredient_id
                                                                 JOIN products p ON pi.product_id = p.id
@@ -24,20 +25,37 @@ class GeneralController extends Controller
                                                                 GROUP BY i.id, pi.id
                                                                 ORDER BY p.id
                                                             ) AS list GROUP BY list.id;")));
+
         $data = [];
-        foreach ($ingredients as $ingredient) {
-            $item = [
+
+
+        // Process each ingredient
+        foreach ($ingredientsData as $ingredient) {
+            // Calculate values and store in an array
+            $weightInKg = CalculationsHelper::gramToKgConverter(weight_in_grams: $ingredient->weight_in_grams);
+            $orderedWeightInKg = CalculationsHelper::gramToKgConverter(weight_in_grams: $ingredient->ordered_weight_sum);
+
+            // Set threshold as 50% of the weight in the Ingredient table
+            $threshold = $ingredient->weight_in_grams * config('food.ingredient.threshold_percentage');
+
+            // Determine if the ordered weight has reached the threshold
+            $weightReachedThreshold = $ingredient->ordered_weight_sum >= $threshold;
+
+            // Calculate the percentage of the ingredient used
+            $percentageUsed = ($ingredient->ordered_weight_sum / $ingredient->weight_in_grams) * 100;
+
+            // Add the processed data to the result array
+            $data[] = [
                 'ingredient' => $ingredient->item,
-                'weight' => CalculationsHelper::gramToKgConverter(weight_in_grams: $ingredient->weight_in_grams),
-                'ordered_weight' => CalculationsHelper::gramToKgConverter(weight_in_grams: $ingredient->ordered_weight_sum),
+                'weight' => $weightInKg,
+                'ordered_weight' => $orderedWeightInKg,
+                'weight_reached_threshold' => $weightReachedThreshold,
+                'percentage_used' => $percentageUsed . '%',
             ];
-            $threshold = $ingredient->weight_in_grams * 0.5; // 50% of the weight in the Ingredient table
-            $item['weight_reached_threshold'] = $ingredient->ordered_weight_sum >= $threshold;
-            $item['percentage_used'] = $ingredient->ordered_weight_sum / $ingredient->weight_in_grams * 100 . '%';
-            $data[] = $item;
         }
 
-        return Response::json($data);
+        // Return the processed data as a JSON response
+        return response()->json($data);
     }
 
 

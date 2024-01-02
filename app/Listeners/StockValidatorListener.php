@@ -15,7 +15,6 @@ use stdClass;
 
 class StockValidatorListener implements ShouldQueue
 {
-    private float $threshold_percentage = 0.5; // 50%
 
     /**
      * Create the event listener.
@@ -69,7 +68,7 @@ class StockValidatorListener implements ShouldQueue
      */
     function is_ingredient_threshold_reached(Ingredient|stdClass $ingredient): bool
     {
-        $threshold = $ingredient->weight_in_grams * $this->threshold_percentage;
+        $threshold = $ingredient->weight_in_grams * config('food.ingredient.threshold_percentage');
         return $ingredient->ordered_weight_sum >= $threshold && !Cache::has('threshold_' . $ingredient->id);
     }
 
