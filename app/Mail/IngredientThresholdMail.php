@@ -3,11 +3,11 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
 
 class IngredientThresholdMail extends Mailable
 {
@@ -18,7 +18,7 @@ class IngredientThresholdMail extends Mailable
      *
      * @return void
      */
-    public function __construct(protected array $ingredients)
+    public function __construct(protected Collection $ingredients)
     {
     }
 

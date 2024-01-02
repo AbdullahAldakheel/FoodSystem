@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helper\CalculationsHelper;
 use App\Models\Ingredient;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
 class GeneralController extends Controller
@@ -15,7 +16,14 @@ class GeneralController extends Controller
      */
     public function stock(): JsonResponse
     {
-        $ingredients = Ingredient::with('productIngredients.product.orders')->get();
+        $ingredients = collect(DB::select(DB::raw("select id, item,weight_in_grams, sum(cc) as ordered_weight_sum   from (
+                                                            SELECT i.id, i.item, i.weight_in_grams AS weight_in_grams, pi.weight_in_grams * count(o.id) AS cc
+                                                                FROM ingredients i JOIN product_ingredients pi ON i.id = pi.ingredient_id
+                                                                JOIN products p ON pi.product_id = p.id
+                                                                LEFT JOIN  orders o ON p.id = o.product_id
+                                                                GROUP BY i.id, pi.id
+                                                                ORDER BY p.id
+                                                            ) AS list GROUP BY list.id;")));
         $data = [];
         foreach ($ingredients as $ingredient) {
             $item = [
