@@ -40,7 +40,7 @@ class StockValidatorListener implements ShouldQueue
 //            ->get();
 
         // Optimized query
-        $ingredients = collect(DB::select(DB::raw("select id, item,weight_in_grams, sum(cc) as ordered_weight_sum   from (
+        $ingredientsData = collect(DB::select(DB::raw("select id, item,weight_in_grams, sum(cc) as ordered_weight_sum   from (
                                                             SELECT i.id, i.item, i.weight_in_grams AS weight_in_grams, pi.weight_in_grams * count(o.id) AS cc
                                                                 FROM ingredients i JOIN product_ingredients pi ON i.id = pi.ingredient_id
                                                                 JOIN products p ON pi.product_id = p.id
@@ -50,12 +50,12 @@ class StockValidatorListener implements ShouldQueue
                                                             ) AS list GROUP BY list.id;")));
 
 
-        $items_reached_threshold = $ingredients
+        $itemsReachedThreshold = $ingredientsData
             ->filter(fn($ingredient) => $this->is_ingredient_threshold_reached($ingredient))
             ->map(fn($ingredient) => $this->prepare_data_to_send($ingredient));
 
-        if ($items_reached_threshold->isNotEmpty()) {
-            Mail::to(config('mail.admin_email'))->send(new IngredientThresholdMail($items_reached_threshold));
+        if ($itemsReachedThreshold->isNotEmpty()) {
+            Mail::to(config('mail.admin_email'))->send(new IngredientThresholdMail($itemsReachedThreshold));
             Log::info('Ingredient Threshold Reached & Mail Sent');
         }
     }
@@ -84,8 +84,8 @@ class StockValidatorListener implements ShouldQueue
         return [
             'id' => $ingredient->id,
             'item' => $ingredient->item,
-            'weight' => CalculationsHelper::gramToKgConverter(weight_in_grams: $ingredient->weight_in_grams),
-            'weight_sum' => CalculationsHelper::gramToKgConverter(weight_in_grams: $ingredient->ordered_weight_sum),
+            'weight' => CalculationsHelper::gramToKgConverter(weightInGrams: $ingredient->weight_in_grams),
+            'weight_sum' => CalculationsHelper::gramToKgConverter(weightInGrams: $ingredient->ordered_weight_sum),
             'threshold' => $ingredient->ordered_weight_sum / $ingredient->weight_in_grams * 100,
         ];
     }

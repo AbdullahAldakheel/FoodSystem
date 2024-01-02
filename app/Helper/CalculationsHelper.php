@@ -8,13 +8,13 @@ class CalculationsHelper
     /**
      * @description Gram to KG converter if the weight is more than 1000 grams
      */
-    static public function gramToKgConverter(int $weight_in_grams): string
+    static public function gramToKgConverter(int $weightInGrams): string
     {
-        if ($weight_in_grams >= 1000) {
-            $weight_in_grams = $weight_in_grams / 1000;
-            return $weight_in_grams . ' KG';
+        if ($weightInGrams >= 1000) {
+            $weightInGrams = $weightInGrams / 1000;
+            return $weightInGrams . ' KG';
         } else {
-            return $weight_in_grams . ' Grams';
+            return $weightInGrams . ' Grams';
         }
     }
 }

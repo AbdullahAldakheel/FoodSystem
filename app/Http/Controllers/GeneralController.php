@@ -32,8 +32,8 @@ class GeneralController extends Controller
         // Process each ingredient
         foreach ($ingredientsData as $ingredient) {
             // Calculate values and store in an array
-            $weightInKg = CalculationsHelper::gramToKgConverter(weight_in_grams: $ingredient->weight_in_grams);
-            $orderedWeightInKg = CalculationsHelper::gramToKgConverter(weight_in_grams: $ingredient->ordered_weight_sum);
+            $weightInKg = CalculationsHelper::gramToKgConverter(weightInGrams: $ingredient->weight_in_grams);
+            $orderedWeightInKg = CalculationsHelper::gramToKgConverter(weightInGrams: $ingredient->ordered_weight_sum);
 
             // Set threshold as 50% of the weight in the Ingredient table
             $threshold = $ingredient->weight_in_grams * config('food.ingredient.threshold_percentage');
