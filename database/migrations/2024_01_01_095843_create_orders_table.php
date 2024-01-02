@@ -17,6 +17,8 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Product::class);
+            // Index the product_id column for faster lookups
+            $table->index(['product_id']);
             $table->timestamps();
         });
     }

@@ -20,6 +20,8 @@ return new class extends Migration
             $table->foreignIdFor(Product::class);
             $table->foreignIdFor(Ingredient::class);
             $table->double('weight_in_grams', 8, 2);
+            // Index
+            $table->index(['product_id', 'ingredient_id']);
             $table->timestamps();
         });
     }
