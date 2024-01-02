@@ -28,4 +28,6 @@ docker-compose up
 
 ## Usage
 
-Import Postman Collection.
+Import [Postman Collection](https://github.com/AbdullahAldakheel/FoodSystem/blob/development/FoodAPI.postman_collection.json).
+
+
